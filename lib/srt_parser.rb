@@ -2,16 +2,15 @@ require_relative 'srt_validator'
 require_relative 'srt_parser_state'
 
 class SRTParser
-
   PARSER_STATE_MACHINE = {
     SRTParserState::SUBTITLE_END => SRTParserState::NUMERIC_SEQUENCE,
     SRTParserState::NUMERIC_SEQUENCE => SRTParserState::TIMESTAMP,
     SRTParserState::TIMESTAMP => SRTParserState::TEXT,
     SRTParserState::TEXT => SRTParserState::SUBTITLE_END
-  }
+  }.freeze
 
-  TIMECODE_SEPARATOR = '-->'
-  TIMECODE_FORMAT = /^(\d{2}\:\d{2}\:\d{2}\,\d{3}) (-->) (\d{2}\:\d{2}\:\d{2}\,\d{3})$/
+  TIMECODE_SEPARATOR = '-->'.freeze
+  TIMECODE_FORMAT = /^(\d{2}\:\d{2}\:\d{2}\,\d{3}) (-->) (\d{2}\:\d{2}\:\d{2}\,\d{3})$/.freeze
   TimestampLine = Struct.new(:appear, :arrow, :disappear)
 
   def initialize(path)
@@ -38,7 +37,6 @@ class SRTParser
     case @parser_state
     when SRTParserState::NUMERIC_SEQUENCE
       check_numeric_sequence
-      return
     when SRTParserState::TIMESTAMP
       check_timecode
     end
@@ -69,7 +67,7 @@ class SRTParser
 
   def check_appear_timecode(timecode_appear)
     if timecode_appear.empty?
-      add_missing_timecode_error(timecode_appear, 'Appear')
+      add_missing_timecode_error('Appear')
     else
       add_timecode_error(timecode_appear) unless timecode?(timecode_appear)
     end
@@ -81,7 +79,7 @@ class SRTParser
 
   def check_disappear_timecode(timecode_disappear)
     if timecode_disappear.empty?
-      add_missing_timecode_error(timecode_disappear, 'Disappear')
+      add_missing_timecode_error('Disappear')
     else
       add_timecode_error(timecode_disappear) unless timecode?(timecode_disappear)
     end
@@ -123,7 +121,7 @@ class SRTParser
   def check_empty_line
     return unless @current_line.strip.empty?
 
-    add_warning( 'Extra blank line detected.')
+    add_warning('Extra blank line detected.')
     true
   end
 
@@ -131,7 +129,7 @@ class SRTParser
     add_expected_actual_error('Numeric counter does not match sequence.', @numeric_sequence, actual)
   end
 
-  def add_missing_timecode_error(timecode, type)
+  def add_missing_timecode_error(type)
     add_error("Expected #{type} timecode.", index_in_line(actual))
   end
 

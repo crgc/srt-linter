@@ -94,7 +94,7 @@ class SRTParser
   end
 
   def timecode?(str)
-    !!(str =~ /^(\d{2}\:\d{2}\:\d{2}\,\d{3})$/)
+    str.match(/^(\d{2}\:\d{2}\:\d{2}\,\d{3})$/)
   end
 
   def check_leading_whitespace

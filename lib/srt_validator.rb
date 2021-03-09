@@ -103,7 +103,7 @@ module SRTValidator
   end
 
   def add_offense(msg, severity, line_char_index = 0)
-    @offenses << ("#{@path}".colorize(:blue) << ":#{line_number}:#{line_char_index}: #{severity}: #{msg}")
+    @offenses << (@path.colorize(:blue) << ":#{line_number}:#{line_char_index}: #{severity}: #{msg}")
   end
 
   def line_number

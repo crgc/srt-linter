@@ -19,7 +19,7 @@
 
 > A basic linter for SubRip (.srt) files
 
-The SubRip Text file format (`.srt`) is a very popular video subtitle format that is wildly used all over the web today. This linter checks that the SRT file conforms to the [SubRip](https://en.wikipedia.org/wiki/SubRip#File_format) format.
+The SubRip Text file format (`.srt`) is a very popular video subtitle format that is widely used all over the web today. This linter checks that the SRT file conforms to the [SubRip](https://en.wikipedia.org/wiki/SubRip#File_format) format.
 
 ## How to run the SRT Linter
 

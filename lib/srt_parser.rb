@@ -3,11 +3,7 @@ require_relative 'srt_parser_state'
 
 class SRTParser
   include SRTValidator
-
-  attr_reader :parser_state
-  attr_reader :lines
-  attr_reader :path
-  attr_reader :offenses
+  attr_reader :parser_state, :lines, :path, :offenses
 
   PARSER_STATE_MACHINE = {
     SRTParserState::NUMERIC_SEQUENCE => SRTParserState::TIMECODE,

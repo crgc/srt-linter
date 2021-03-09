@@ -22,7 +22,7 @@ end
 
 def run_linter
   parser = SRTParser.new(ARGV.first)
-  return print_line('No file detected.') if (parser.path.nil? || !File.file?(parser.path))
+  return print_line('No file detected.') if parser.path.nil? || !File.file?(parser.path)
 
   parser.read_lines
 

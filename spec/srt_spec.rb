@@ -40,7 +40,7 @@ describe SRTParser do
       it 'adds an Error to the offenses array' do
         bad_timecode_srt.read_lines
         bad_timecode_srt.run
-        expect(bad_timecode_srt.offenses.last).to include('Error: Timecode does not match expected format')
+        expect(bad_timecode_srt.offenses.last).to include('Timecode does not match expected format')
       end
     end
 
@@ -48,7 +48,7 @@ describe SRTParser do
       it 'adds an Error to the offenses array' do
         no_separator_srt.read_lines
         no_separator_srt.run
-        expect(no_separator_srt.offenses[0]).to include('Error: Expected --> separator')
+        expect(no_separator_srt.offenses[0]).to include('Expected --> separator')
       end
     end
 
@@ -56,7 +56,7 @@ describe SRTParser do
       it 'adds an Error to the offenses array' do
         bad_sequence_srt.read_lines
         bad_sequence_srt.run
-        expect(bad_sequence_srt.offenses.last).to include('Error: Numeric counter does not match sequence')
+        expect(bad_sequence_srt.offenses.last).to include('Numeric counter does not match sequence')
       end
     end
 
@@ -65,7 +65,7 @@ describe SRTParser do
         missing_eof_line_srt.read_lines
         missing_eof_line_srt.run
         missing_eof_line_srt.check_last_empty_line
-        expect(missing_eof_line_srt.offenses.last).to include('Warning: Expected an empty line containing no text')
+        expect(missing_eof_line_srt.offenses.last).to include('Expected an empty line containing no text')
       end
     end
 
@@ -73,7 +73,7 @@ describe SRTParser do
       it 'adds a Warning to the offenses array' do
         empty_lines_srt.read_lines
         empty_lines_srt.run
-        expect(empty_lines_srt.offenses.last).to include('Warning: Extra blank line detected')
+        expect(empty_lines_srt.offenses.last).to include('Extra blank line detected')
       end
     end
   end

@@ -92,21 +92,19 @@ class SRTParser
     if empty_line
       @subtitle_line_counter = 0
       next_parser_state
-    elsif
-       @subtitle_line_counter > 2
-       @subtitle_line_counter = 0
-       add_expected_sub_end_warning
-       next_parser_state
+    elsif @subtitle_line_counter > 2
+      @subtitle_line_counter = 0
+      add_expected_sub_end_warning
+      next_parser_state
     end
   end
 
   def check_subtitle_end
     return if check_empty_line
+    return unless @current_line.to_i.positive?
 
-    if @current_line.to_i > 0
-      next_parser_state
-      check_numeric_sequence
-    end
+    next_parser_state
+    check_numeric_sequence
   end
 
   def eof?

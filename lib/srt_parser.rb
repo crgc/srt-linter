@@ -14,7 +14,7 @@ class SRTParser
   }.freeze
 
   TIMECODE_SEPARATOR = '-->'.freeze
-  TIMECODE_FORMAT = /^(\d{2}\:\d{2}\:\d{2}\,\d{3}) (-->) (\d{2}\:\d{2}\:\d{2}\,\d{3})$/.freeze
+  TIMECODE_FORMAT = /^(\d{2}:\d{2}:\d{2},\d{3}) (-->) (\d{2}:\d{2}:\d{2},\d{3})$/.freeze
   TimestampLine = Struct.new(:appear, :arrow, :disappear)
 
   def initialize(path)
@@ -53,10 +53,8 @@ class SRTParser
       check_timecode
     when SRTParserState::TEXT
       check_subtitle_text
-    when SRTParserState::SUBTITLE_END
-      check_subtitle_end
     else
-      # no-op
+      check_subtitle_end
     end
   end
 
@@ -94,12 +92,11 @@ class SRTParser
     if empty_line
       @subtitle_line_counter = 0
       next_parser_state
-    else
-      if @subtitle_line_counter > 2
-        @subtitle_line_counter = 0
-        add_expected_sub_end_warning
-        next_parser_state
-      end
+    elsif
+       @subtitle_line_counter > 2
+       @subtitle_line_counter = 0
+       add_expected_sub_end_warning
+       next_parser_state
     end
   end
 
@@ -145,7 +142,7 @@ class SRTParser
   end
 
   def timecode?(str)
-    str.match(/^(\d{2}\:\d{2}\:\d{2}\,\d{3})$/)
+    str.match(/^(\d{2}:\d{2}:\d{2},\d{3})$/)
   end
 
   def check_leading_whitespace
@@ -265,7 +262,7 @@ end
 parser = SRTParser.new(ARGV.first)
 parser.read_lines
 
-parser.print_line("Inspecting file: #{parser.path}")
+parser.print_line("Inspecting file: #{parser.path}\n..........")
 parser.run
 parser.check_last_empty_line
 

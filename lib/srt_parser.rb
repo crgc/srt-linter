@@ -2,11 +2,14 @@ require_relative 'srt_validator'
 require_relative 'srt_parser_state'
 
 class SRTParser
+  attr_reader :parser_state
+  attr_reader :lines
+
   PARSER_STATE_MACHINE = {
-    SRTParserState::SUBTITLE_END => SRTParserState::NUMERIC_SEQUENCE,
-    SRTParserState::NUMERIC_SEQUENCE => SRTParserState::TIMESTAMP,
-    SRTParserState::TIMESTAMP => SRTParserState::TEXT,
-    SRTParserState::TEXT => SRTParserState::SUBTITLE_END
+    SRTParserState::NUMERIC_SEQUENCE => SRTParserState::TIMECODE,
+    SRTParserState::TIMECODE => SRTParserState::TEXT,
+    SRTParserState::TEXT => SRTParserState::SUBTITLE_END,
+    SRTParserState::SUBTITLE_END => SRTParserState::NUMERIC_SEQUENCE
   }.freeze
 
   TIMECODE_SEPARATOR = '-->'.freeze
@@ -16,33 +19,73 @@ class SRTParser
   def initialize(path)
     @path = path
     @offenses = []
-    @lines = IO.readlines(path)
-    @numeric_sequence = 1
-    @parser_state = SRTParserState::NUMERIC_SEQUENCE
+    @lines = []
+    @lines_total = 0
+  end
+
+  def read_lines
+    @lines = IO.readlines(@path)
+    @lines_total = @lines.size
   end
 
   def run
+    @numeric_sequence = 0
+    @subtitle_line_counter = 0
+    @parser_state = SRTParserState::NUMERIC_SEQUENCE
+
     @lines.each_with_index do |line, i|
       @current_line = line
       @current_line_index = i
 
-      check_current_line unless check_empty_line
+      check_current_line
     end
   end
 
   def check_current_line
-    check_leading_whitespace
-    check_trailing_whitespace
+    puts "#{@path}: [#{@current_line_index}, #{parser_state_str}, #{@current_line}]"
 
+    if eof?
+      check_eof
+    else
+      check_leading_whitespace
+      check_trailing_whitespace
+
+      case @parser_state
+      when SRTParserState::NUMERIC_SEQUENCE
+        check_numeric_sequence
+      when SRTParserState::TIMECODE
+        check_timecode
+      when SRTParserState::TEXT
+        check_subtitle_text
+      when SRTParserState::SUBTITLE_END
+        check_subtitle_end
+      else
+        # no-op
+      end
+    end
+  end
+
+  def check_eof
+
+  end
+
+  def parser_state_str
     case @parser_state
     when SRTParserState::NUMERIC_SEQUENCE
-      check_numeric_sequence
-    when SRTParserState::TIMESTAMP
-      check_timecode
+      "NUMERIC_SEQUENCE"
+    when SRTParserState::TIMECODE
+      "TIMECODE"
+    when SRTParserState::TEXT
+      "TEXT"
+    when SRTParserState::SUBTITLE_END
+      "SUBTITLE_END"
+    else
+      # no-op
     end
   end
 
   def check_numeric_sequence
+    @numeric_sequence += 1
     counter = @current_line.to_i
 
     if @numeric_sequence == counter
@@ -53,8 +96,6 @@ class SRTParser
   end
 
   def check_timecode
-    return unless parse_timestamp(@current_line).nil?
-
     timestamp_elements = @current_line.split(' ')
     timecode_appear = element_or_empty(timestamp_elements[0])
     timecode_separator = element_or_empty(timestamp_elements[1])
@@ -63,6 +104,42 @@ class SRTParser
     check_appear_timecode(timecode_appear)
     check_timecode_separator(timecode_separator)
     check_disappear_timecode(timecode_disappear)
+
+    next_parser_state
+  end
+
+  def check_subtitle_text
+    empty_line = empty_line?
+    @subtitle_line_counter += 1 unless empty_line
+
+    if @previous_line.nil?
+      add_blank_subtitle_line_error if empty_line
+    end
+
+    @previous_line = @current_line
+
+    if empty_line
+      next_parser_state
+    else
+      if @subtitle_line_counter > 2
+        @subtitle_line_counter = 0
+        add_expected_blank_line_error
+        next_parser_state
+      end
+    end
+  end
+
+  def check_subtitle_end
+    return if check_empty_line
+
+    if @current_line.to_i > 0
+      next_parser_state
+      check_numeric_sequence
+    end
+  end
+
+  def eof?
+    @current_line_index == (@lines.size - 1)
   end
 
   def check_appear_timecode(timecode_appear)
@@ -74,19 +151,19 @@ class SRTParser
   end
 
   def check_timecode_separator(timecode_separator)
-    add_timecode_separator_error unless timecode_separator == TIMECODE_SEPARATOR
+    add_timecode_separator_error(@current_line.size) unless timecode_separator == TIMECODE_SEPARATOR
   end
 
   def check_disappear_timecode(timecode_disappear)
     if timecode_disappear.empty?
-      add_missing_timecode_error('Disappear')
+      add_missing_timecode_error('Disappear', @current_line.size)
     else
       add_timecode_error(timecode_disappear) unless timecode?(timecode_disappear)
     end
   end
 
   def element_or_empty(element)
-    element.nil? ? ' ' : element
+    element.nil? ? '' : element
   end
 
   def parse_timestamp(line)
@@ -125,36 +202,48 @@ class SRTParser
     true
   end
 
+  def add_expected_blank_line_error
+    add_error('Expected a blank line containing no text, indicating the end of this subtitle.')
+  end
+
+  def add_blank_subtitle_line_error
+    add_error('Empty subtitle line detected.')
+  end
+
   def add_numeric_sequence_error(actual)
     add_expected_actual_error('Numeric counter does not match sequence.', @numeric_sequence, actual)
   end
 
-  def add_missing_timecode_error(type)
-    add_error("Expected #{type} timecode.", index_in_line(actual))
+  def add_missing_timecode_error(type, line_char_index = 0)
+    add_error("Expected #{type} timecode.", line_char_index)
   end
 
   def add_timecode_error(timecode)
-    add_expected_actual_error('Timecode does not match format.', '00:00:00,000', timecode)
+    add_expected_actual_error('Timecode does not match expected format.', '00:00:00,000', timecode)
   end
 
-  def add_timecode_separator_error
-    add_error('Expected --> separator')
+  def add_timecode_separator_error(line_char_index = 0)
+    add_error('Expected --> separator', line_char_index)
   end
 
   def add_expected_actual_error(msg, expected, actual)
     add_error(msg << " Expected: #{expected}, Actual: #{actual}", index_in_line(actual))
   end
 
-  def add_error(msg, line_char_count = 0)
-    add_offense(msg, 'Error', line_char_count)
+  def add_error(msg, line_char_index = 0)
+    add_offense(msg, 'Error', line_char_index)
   end
 
-  def add_warning(msg, line_char_count = 0)
-    add_offense(msg, 'Warning', line_char_count)
+  def add_warning(msg, line_char_index = 0)
+    add_offense(msg, 'Warning', line_char_index)
   end
 
-  def add_offense(msg, severity, line_char_count = 0)
-    @offenses << "#{@path}:#{line_number}:#{line_char_count}: #{severity}: #{msg}"
+  def add_offense(msg, severity, line_char_index = 0)
+    @offenses << "#{@path}:#{line_number}:#{line_char_index}: #{severity}: #{msg}"
+  end
+
+  def empty_line?
+    @current_line.strip.empty?
   end
 
   def line_number
@@ -165,21 +254,29 @@ class SRTParser
     @parser_state = PARSER_STATE_MACHINE[@parser_state]
   end
 
-  def errors?
+  def offenses?
     @offenses.size.positive?
   end
 
-  def print_errors_report
+  def print_offenses_report
     puts @offenses
   end
 
-  private
+  def print_no_offenses
+    puts "#{@lines.size} lines inspected, 0 offenses detected."
+  end
 
   def index_in_line(actual)
-    @current_line.index(actual)
+    @current_line.index(actual.to_s)
   end
 end
 
 parser = SRTParser.new(ARGV.first)
+parser.read_lines
 parser.run
-parser.print_errors_report if parser.errors?
+
+if parser.offenses?
+  parser.print_offenses_report
+else
+  parser.print_no_offenses
+end

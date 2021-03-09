@@ -22,6 +22,7 @@ class SRTParser
   def read_lines
     @lines = IO.readlines(@path)
     @lines_total = @lines.size
+    @lines
   end
 
   def run

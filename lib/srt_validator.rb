@@ -58,6 +58,8 @@ module SRTValidator
     add_expected_last_empty_line unless @lines.last.strip.empty?
   end
 
+  private
+
   def add_expected_last_empty_line
     add_warning('Expected an empty line containing no text, indicating the end of the file.')
   end

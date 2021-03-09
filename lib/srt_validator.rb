@@ -1,6 +1,14 @@
+require 'colorize'
+
 module SRTValidator
   TIMECODE_SEPARATOR = '-->'.freeze
   TIMECODE_FORMAT = /^(\d{2}:\d{2}:\d{2},\d{3})$/.freeze
+
+  def check_last_empty_line
+    add_expected_last_empty_line unless @lines.last.strip.empty?
+  end
+
+  private
 
   def check_appear_timecode(timecode_appear)
     if timecode_appear.empty?
@@ -54,12 +62,6 @@ module SRTValidator
     true
   end
 
-  def check_last_empty_line
-    add_expected_last_empty_line unless @lines.last.strip.empty?
-  end
-
-  private
-
   def add_expected_last_empty_line
     add_warning('Expected an empty line containing no text, indicating the end of the file.')
   end
@@ -93,15 +95,15 @@ module SRTValidator
   end
 
   def add_error(msg, line_char_index = 0)
-    add_offense(msg, 'Error', line_char_index)
+    add_offense(msg, 'Error'.colorize(:red), line_char_index)
   end
 
   def add_warning(msg, line_char_index = 0)
-    add_offense(msg, 'Warning', line_char_index)
+    add_offense(msg, 'Warning'.colorize(:yellow), line_char_index)
   end
 
   def add_offense(msg, severity, line_char_index = 0)
-    @offenses << "#{@path}:#{line_number}:#{line_char_index}: #{severity}: #{msg}"
+    @offenses << ("#{@path}".colorize(:blue) << ":#{line_number}:#{line_char_index}: #{severity}: #{msg}")
   end
 
   def line_number

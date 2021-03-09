@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'colorize'
 require_relative '../lib/srt_parser'
 
 def print_offenses_report(parser)
@@ -9,11 +10,11 @@ def print_offenses_report(parser)
     print_line(offense)
   end
 
-  print_line("\n#{offenses.size} offenses detected.")
+  print_line("\n#{offenses.size} offenses".colorize(:red) << ' detected.')
 end
 
 def print_no_offenses
-  print_line("\n0 offenses detected.")
+  print_line("\n0 offenses".colorize(:green) << ' detected.')
 end
 
 def print_line(text)
@@ -26,7 +27,7 @@ def run_linter
 
   parser.read_lines
 
-  print_line("Inspecting file: #{parser.path}\n..........")
+  print_line("Inspecting file: #{parser.path}\n" << '..........'.colorize(:green))
   parser.run
   parser.check_last_empty_line
 

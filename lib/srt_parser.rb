@@ -4,6 +4,7 @@ require_relative 'srt_parser_state'
 class SRTParser
   attr_reader :parser_state
   attr_reader :lines
+  attr_reader :path
 
   PARSER_STATE_MACHINE = {
     SRTParserState::NUMERIC_SEQUENCE => SRTParserState::TIMECODE,
@@ -42,43 +43,18 @@ class SRTParser
   end
 
   def check_current_line
-    puts "#{@path}: [#{@current_line_index}, #{parser_state_str}, #{@current_line}]"
+    check_leading_whitespace
+    check_trailing_whitespace
 
-    if eof?
-      check_eof
-    else
-      check_leading_whitespace
-      check_trailing_whitespace
-
-      case @parser_state
-      when SRTParserState::NUMERIC_SEQUENCE
-        check_numeric_sequence
-      when SRTParserState::TIMECODE
-        check_timecode
-      when SRTParserState::TEXT
-        check_subtitle_text
-      when SRTParserState::SUBTITLE_END
-        check_subtitle_end
-      else
-        # no-op
-      end
-    end
-  end
-
-  def check_eof
-
-  end
-
-  def parser_state_str
     case @parser_state
     when SRTParserState::NUMERIC_SEQUENCE
-      "NUMERIC_SEQUENCE"
+      check_numeric_sequence
     when SRTParserState::TIMECODE
-      "TIMECODE"
+      check_timecode
     when SRTParserState::TEXT
-      "TEXT"
+      check_subtitle_text
     when SRTParserState::SUBTITLE_END
-      "SUBTITLE_END"
+      check_subtitle_end
     else
       # no-op
     end
@@ -88,11 +64,8 @@ class SRTParser
     @numeric_sequence += 1
     counter = @current_line.to_i
 
-    if @numeric_sequence == counter
-      next_parser_state
-    else
-      add_numeric_sequence_error(counter)
-    end
+    add_numeric_sequence_error(counter) unless @numeric_sequence == counter
+    next_parser_state
   end
 
   def check_timecode
@@ -119,11 +92,12 @@ class SRTParser
     @previous_line = @current_line
 
     if empty_line
+      @subtitle_line_counter = 0
       next_parser_state
     else
       if @subtitle_line_counter > 2
         @subtitle_line_counter = 0
-        add_expected_blank_line_error
+        add_expected_sub_end_warning
         next_parser_state
       end
     end
@@ -202,8 +176,16 @@ class SRTParser
     true
   end
 
-  def add_expected_blank_line_error
-    add_error('Expected a blank line containing no text, indicating the end of this subtitle.')
+  def check_last_empty_line
+    add_expected_last_empty_line unless @lines.last.strip.empty?
+  end
+
+  def add_expected_last_empty_line
+    add_warning('Expected an empty line containing no text, indicating the end of the file.')
+  end
+
+  def add_expected_sub_end_warning
+    add_error('Expected an empty line containing no text, indicating the end of this subtitle.')
   end
 
   def add_blank_subtitle_line_error
@@ -259,21 +241,33 @@ class SRTParser
   end
 
   def print_offenses_report
-    puts @offenses
+    print_line('Offenses:')
+    @offenses.each do |offense|
+      print_line(offense)
+    end
+
+    print_line("\n#{@offenses.size} offenses detected.")
   end
 
   def print_no_offenses
-    puts "#{@lines.size} lines inspected, 0 offenses detected."
+    print_line("\n0 offenses detected.")
   end
 
   def index_in_line(actual)
     @current_line.index(actual.to_s)
   end
+
+  def print_line(text)
+    puts "\n" << text << "\n"
+  end
 end
 
 parser = SRTParser.new(ARGV.first)
 parser.read_lines
+
+parser.print_line("Inspecting file: #{parser.path}")
 parser.run
+parser.check_last_empty_line
 
 if parser.offenses?
   parser.print_offenses_report

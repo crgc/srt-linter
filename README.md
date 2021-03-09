@@ -39,9 +39,13 @@ git clone https://github.com/chuckbuckethead/microverse-ruby-linter.git
 ```
 cd microverse-ruby-linter
 ```
-* Locate the `.srt` file you wish to validate and run the SRT Linter against it
+* Install gems
 ```
-./bin/main <path_to_srt_file>
+bundle install
+```
+* Locate the `.srt` file you wish to validate and run it against the SRT Linter
+```
+./bin/main.rb <path_to_srt_file>
 ```
 
 ## Good and Bad practices

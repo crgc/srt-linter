@@ -2,14 +2,14 @@ require 'rspec'
 require './lib/srt_parser.rb'
 
 describe SRTParser do
-  let(:good_srt) {SRTParser.new('./srt/good_subs.srt')}
-  let(:bad_srt) {SRTParser.new('./srt/bad_subs.srt')}
+  let(:good_srt) { SRTParser.new('./srt/good_subs.srt') }
+  let(:bad_srt) { SRTParser.new('./srt/bad_subs.srt') }
 
-  let(:bad_timecode_srt) {SRTParser.new('./srt/bad_subs__bad_timecode_format.srt')}
-  let(:no_separator_srt) {SRTParser.new('./srt/bad_subs__no_separator.srt')}
-  let(:bad_sequence_srt) {SRTParser.new('./srt/bad_subs__bad_sequence.srt')}
-  let(:missing_eof_line_srt) {SRTParser.new('./srt/bad_subs__missing_eof_line.srt')}
-  let(:empty_lines_srt) {SRTParser.new('./srt/bad_subs__extra_empty_line.srt')}
+  let(:bad_timecode_srt) { SRTParser.new('./srt/bad_subs__bad_timecode_format.srt') }
+  let(:no_separator_srt) { SRTParser.new('./srt/bad_subs__no_separator.srt') }
+  let(:bad_sequence_srt) { SRTParser.new('./srt/bad_subs__bad_sequence.srt') }
+  let(:missing_eof_line_srt) { SRTParser.new('./srt/bad_subs__missing_eof_line.srt') }
+  let(:empty_lines_srt) { SRTParser.new('./srt/bad_subs__extra_empty_line.srt') }
 
   describe '#read_lines' do
     it 'reads a file and stores its content in an array' do

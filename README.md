@@ -2,18 +2,18 @@
 
 <br />
 <p align="center">
-  <a href="https://github.com/chuckbuckethead/microverse-ruby-linter">
+  <a href="https://github.com/crgc/srt-linter">
     <img src="img/screenshot.png" alt="Logo">
   </a>
 
   <h3 align="center">SRT Linter</h3>
 
   <p align="center">
-    This project is part of the Microverse Ruby Module.
+    This project is part of the Microverse Ruby Module
     <br />
-    <a href="https://github.com/chuckbuckethead/microverse-ruby-linter/issues">Report Bug</a>
+    <a href="https://github.com/crgc/srt-linter/issues">Report Bug</a>
     ·
-    <a href="https://github.com/chuckbuckethead/microverse-ruby-linter/issues">Request Feature</a>
+    <a href="https://github.com/crgc/srt-linter/issues">Request Feature</a>
   </p>
 </p>
 
@@ -31,13 +31,13 @@ The SubRip Text file format (`.srt`) is a very popular video subtitle format tha
 
 * To clone this repository, open your Terminal and execute the following command:
 ```
-git clone https://github.com/chuckbuckethead/microverse-ruby-linter.git
+git clone https://github.com/crgc/srt-linter.git
 ```
 
 ### Run
 * Change into the folder
 ```
-cd microverse-ruby-linter
+cd srt-linter
 ```
 * Install gems
 ```
@@ -72,7 +72,7 @@ bundle install
 ## Authors
 
 👤  **Carlos González**
-- GitHub: [@chuckbuckethead](https://github.com/chuckbuckethead)
+- GitHub: [@crgc](https://github.com/crgc)
 - Twitter: [@aclerkofpomier](https://twitter.com/aclerkofpomier)
 - LinkedIn: [Carlos González](https://www.linkedin.com/in/carlosrmgonzalez/)
 
@@ -80,7 +80,7 @@ bundle install
 
 Contributions, issues, and feature requests are welcome!
 
-Feel free to check the [issues page](https://github.com/chuckbuckethead/microverse-ruby-linter/issues).
+Feel free to check the [issues page](https://github.com/crgc/srt-linter/issues).
 
 ## Show your support
 
